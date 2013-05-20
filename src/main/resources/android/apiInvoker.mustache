@@ -29,6 +29,8 @@ public class ApiInvoker
 
     public String escapeString(String str)
     {
+    	if(str != null)
+    		return URLEncoder.encode(str);
         return str;
     }
 
