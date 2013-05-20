@@ -9,6 +9,7 @@ import java.util.*;
 
 {{#operations}}
 public class {{classname}} {
+  String TAG = "{{classname}}";  
   String basePath = "{{basePath}}";
   ApiInvoker apiInvoker = ApiInvoker.getInstance();
 
@@ -32,6 +33,7 @@ public class {{classname}} {
     // query params
     Map<String, String> queryParams = new HashMap<String, String>();
     Map<String, String> headerParams = new HashMap<String, String>();
+    Map<String, Object> formParams = new HashMap<String, Object>();
 
     {{#requiredParamCount}}
     // verify required params are set
@@ -46,6 +48,9 @@ public class {{classname}} {
 
     {{#headerParams}}headerParams.put("{{paramName}}", {{paramName}});
     {{/headerParams}}
+    
+    {{#formParams}}formParams.put("{{paramName}}", {{paramName}});
+    {{/formParams}}
 
     try {
       String response = apiInvoker.invokeAPI(basePath, path, "{{httpMethod}}", queryParams, {{#bodyParam}}{{bodyParam}}{{/bodyParam}}{{^bodyParam}}null{{/bodyParam}}, headerParams);

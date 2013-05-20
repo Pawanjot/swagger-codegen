@@ -1,0 +1,55 @@
+#!/bin/sh
+
+[ -z $DEBUG ] || set -x
+
+which which 2>&1 >/dev/null || { echo "Unable to find Which. Please Install or Add to your PATH."; exit -1; }
+which dirname 2>&1 >/dev/null || { echo "Unable to find Dirname. Please Install or Add to your PATH."; exit -1; }
+which basename 2>&1 >/dev/null || { echo "Unable to find Basename. Please Install or Add to your PATH."; exit -1; }
+which pwd 2>&1 >/dev/null || { echo "Unable to find Pwd. Please Install or Add to your PATH."; exit -1; }
+
+CWD=`pwd -P`
+
+BIN_DIR=`dirname $0`
+TOOLS_DIR=`dirname $BIN_DIR`
+PATH=$PATH:$BIN_DIR
+
+which find 2>&1 >/dev/null || { echo "Unable to find Find. Please Install or Add to your PATH."; exit -1; }
+which mkdir 2>&1 >/dev/null || { echo "Unable to find Mkdir. Please Install or Add to your PATH."; exit -1; }
+
+SCALA=noscala
+which $SCALA 2>&1 >/dev/null || SCALA=scala
+which $SCALA 2>&1 >/dev/null || SCALA=scala-2.6
+which $SCALA 2>&1 >/dev/null || SCALA=scala-2.7
+which $SCALA 2>&1 >/dev/null || SCALA=scala-2.8
+which $SCALA 2>&1 >/dev/null || SCALA=scala-2.9
+which $SCALA 2>&1 >/dev/null || SCALA=scala-2.10
+which $SCALA 2>&1 >/dev/null || SCALA=scala-2.11
+
+which $SCALA 2>&1 >/dev/null && { echo "Found Scala: "$SCALA; }
+which $SCALA 2>&1 >/dev/null || { echo "Unable to find Scala. Please Install or Add to your PATH."; exit -1; }
+
+SWAGGER_DIR=$TOOLS_DIR/swagger-codegen
+[ -d $SWAGGER_DIR ] || SWAGGER_DIR=$TOOLS_DIR/target
+
+if [ -z $JAVA_HOME ] ; then
+	[ -e /usr/libexec/java_home ] && JAVA_HOME=`/usr/libexec/java_home`
+fi
+
+[ -z $JAVA_HOME ] && { echo "Unable to get JAVA_HOME. Please set it Correctly."; exit -1; }
+
+which java 2>&1 >/dev/null || { echo "Unable to find Java. Please Install or Add to your PATH."; exit -1; }
+which jps 2>&1 >/dev/null || { echo "Unable to find Java PS. Please Install or Add to your PATH."; exit -1; }
+
+URL=$1
+[ -z $URL ] && URL=http://localhost:8000/api/resources
+
+echo "Processing URL: "$URL
+
+export CLASSPATH=`ls $SWAGGER_DIR/lib/ 2>/dev/null | grep .jar | tr "\t\n\r " ::::`:`ls $SWAGGER_DIR 2>/dev/null | grep .jar | tr "\t\n\r " ::::`:$SWAGGER_DIR/lib/*:$SWAGGER_DIR/*
+export JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M"
+CLASS=`find $TOOLS_DIR -iname BSBGamesCodeGen.scala`
+[ -z $CLASS ] && CLASS='BSBGamesCodeGen'
+
+[ -z $CLASS ] && { echo "Unable to Locate Class." ; exit -1; }
+#JAVA_OPTS=$JAVA_OPTS $SCALA -cp $CLASSPATH $CLASS $URL special-key
+JAVA_OPTS=$JAVA_OPTS $SCALA -cp $SWAGGER_DIR/lib/*:$SWAGGER_DIR/* $CLASS $URL special-key

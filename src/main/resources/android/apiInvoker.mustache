@@ -1,132 +1,161 @@
 package {{invokerPackage}};
 
-import com.fasterxml.jackson.core.JsonGenerator.Feature;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.api.client.WebResource.Builder;
-
-import javax.ws.rs.core.MediaType;
-
-import java.util.Map;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
-import java.io.IOException;
+import java.util.Map;
+import android.util.Log;
 
-public class ApiInvoker {
-  private static ApiInvoker INSTANCE = new ApiInvoker();
-  private Map<String, Client> hostMap = new HashMap<String, Client>();
-  private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
+import com.bsb.games.social.util.StringUtil;
+import com.fasterxml.jackson.databind.JavaType;
 
-  public static ApiInvoker getInstance() {
-    return INSTANCE;
-  }
-  
-  public void addDefaultHeader(String key, String value) {
-     defaultHeaderMap.put(key, value);
-  }
+public class ApiInvoker
+{
+    public static final String TAG = "APIINVOKER";
 
-  public String escapeString(String str) {
-    return str;
-  }
+    private static ApiInvoker INSTANCE = new ApiInvoker();
 
-  public static Object deserialize(String json, String containerType, Class cls) throws ApiException {
-    try{
-      if("List".equals(containerType)) {
-        JavaType typeInfo = JsonUtil.getJsonMapper().getTypeFactory().constructCollectionType(List.class, cls);
-        List response = (List<?>) JsonUtil.getJsonMapper().readValue(json, typeInfo);
-        return response;
-      }
-      else if(String.class.equals(cls)) {
-        if(json != null && json.startsWith("\"") && json.endsWith("\"") && json.length() > 1) {
-          return json.substring(1, json.length() - 2);
+    private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
+
+    public static ApiInvoker getInstance()
+    {
+        return INSTANCE;
+    }
+
+    public void addDefaultHeader(String key, String value)
+    {
+        defaultHeaderMap.put(key, value);
+    }
+
+    public String escapeString(String str)
+    {
+        return str;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object deserialize(String json, String containerType, @SuppressWarnings("rawtypes") Class cls)
+        throws ApiException
+    {
+        Log.v(TAG, "Deserializing: " + StringUtil.summarize(json));
+        try {
+            String parsedJson = json;
+            if ("List".equals(containerType)) {
+                JavaType typeInfo = JsonUtil.getJsonMapper().getTypeFactory().constructCollectionType(List.class, cls);
+                @SuppressWarnings("rawtypes")
+                List response = (List< ? >) JsonUtil.getJsonMapper().readValue(parsedJson, typeInfo);
+                return response;
+            } else if (String.class.equals(cls)) {
+                if (parsedJson != null && parsedJson.startsWith("\"") && parsedJson.endsWith("\"")
+                    && parsedJson.length() > 1) {
+                    return parsedJson.substring(1, parsedJson.length() - 1);
+                } else
+                    return parsedJson;
+            } else {
+                return JsonUtil.getJsonMapper().readValue(parsedJson, cls);
+            }
+        } catch (Exception e) {
+            throw new ApiException(500, e.getMessage());
         }
-        else 
-          return json;
-      }
-      else {
-        return JsonUtil.getJsonMapper().readValue(json, cls);
-      }
     }
-    catch (IOException e) {
-      throw new ApiException(500, e.getMessage());
-    }
-  }
 
-  public static String serialize(Object obj) throws ApiException {
-    try {
-      if (obj != null) return JsonUtil.getJsonMapper().writeValueAsString(obj);
-      else return null;
+    public static String serialize(Object obj) throws ApiException
+    {
+        try {
+            if (obj != null)
+                return JsonUtil.getJsonMapper().writeValueAsString(obj);
+            else
+                return null;
+        } catch (Exception e) {
+            throw new ApiException(500, e.getMessage());
+        }
     }
-    catch (Exception e) {
-      throw new ApiException(500, e.getMessage());
-    }
-  }
 
-  public String invokeAPI(String host, String path, String method, Map<String, String> queryParams, Object body, Map<String, String> headerParams) throws ApiException {
-    Client client = getClient(host);
+    public static String serializeURLEncoded(Object obj) throws ApiException
+    {
+        try {
+            Map<String, String> params = new HashMap<String, String>();
+            if (obj != null && obj instanceof Map) {
+                StringBuilder ret = new StringBuilder();
+                Map< ? , ? > mobj = (Map< ? , ? >) obj;
+                int Count = 0;
+                for (Object key : mobj.keySet()) {
+                    Object value = mobj.get(key);
+                    if (key != null && value != null) {
+                        if (Count >= 1)
+                            ret.append("&");
+                        ret.append(URLEncoder.encode(key.toString(), "UTF-8"));
+                        ret.append("=");
+                        ret.append(URLEncoder.encode(value.toString(), "UTF-8"));
+                        params.put(key.toString(), value.toString());
+                        ++Count;
+                    }
+                }
 
-    StringBuilder b = new StringBuilder();
-    
-    for(String key : queryParams.keySet()) {
-      String value = queryParams.get(key);
-      if (value != null){
-        if(b.toString().length() == 0) b.append("?");
-        else b.append("&");
-        b.append(escapeString(key)).append("=").append(escapeString(value));
-      }
-    }
-    String querystring = b.toString();
+                return ret.toString();
+            } else
+                return null;
+        } catch (Exception e) {
 
-    Builder builder = client.resource(host + path + querystring).type("application/json");
-    for(String key : headerParams.keySet()) {
-      builder.header(key, headerParams.get(key));
+            throw new ApiException(500, e.getMessage());
+        }
     }
-    
-    for(String key : defaultHeaderMap.keySet()) {
-      if(!headerParams.containsKey(key)) {
-        builder.header(key, defaultHeaderMap.get(key));
-      }
-    }
-    ClientResponse response = null;
 
-    if("GET".equals(method)) {
-      response = (ClientResponse) builder.get(ClientResponse.class);
-    }
-    else if ("POST".equals(method)) {
-        response = builder.post(ClientResponse.class, serialize(body));
-    }
-    else if ("PUT".equals(method)) {
-      response = builder.put(ClientResponse.class, serialize(body));
-      }
-    else if ("DELETE".equals(method)) {
-        response = builder.delete(ClientResponse.class, serialize(body));
-    }
-    else {
-      throw new ApiException(500, "unknown method type " + method);
-    }
-    if(response.getClientResponseStatus() == ClientResponse.Status.OK) {
-      return (String) response.getEntity(String.class);
-    }
-    else {
-      throw new ApiException(
-                response.getClientResponseStatus().getStatusCode(),
-                response.getEntity(String.class));      
-    }
-  }
+    /**
+     * @param host
+     * @param path
+     * @param method
+     * @param queryParams
+     * @param body
+     * @param headerParams
+     * @return Response string
+     * @throws ApiException Making this method synchronized as it calls a method in background which may affect the
+     *             response of other requests TODO: This method needs re-factoring. Use a factory class to select either
+     *             Jersey or HTTP implementation
+     */
+    public String invokeAPI(String host, String path, String method, Map<String, String> queryParams, Object body,
+        Map<String, String> headerParams) throws ApiException
+    {
 
-  private Client getClient(String host) {
-  if(!hostMap.containsKey(host)) {
-    Client client = Client.create();
-    client.addFilter(new LoggingFilter());
-        hostMap.put(host, client);
-  }
-  return hostMap.get(host);
-  }
+        StringBuilder b = new StringBuilder();
+        for (String key : queryParams.keySet()) {
+            String value = queryParams.get(key);
+            if (value != null) {
+                if (b.toString().length() == 0)
+                    b.append("?");
+                else
+                    b.append("&");
+                b.append(escapeString(key)).append("=").append(escapeString(value));
+            }
+        }
+        String querystring = b.toString();
+
+        NetworkHandler netHandle = new NetworkHandler();
+
+        netHandle.setBody(body);
+        netHandle.setHeaderParams(headerParams);
+        netHandle.setQueryParams(queryParams);
+
+        String response = null;
+        // This is a synchronized call of a background task.
+        try {
+            Log.v(TAG, host + path + querystring);
+            if ("GET".equals(method)) {
+                response = netHandle.execute(host + path + querystring, "GET").get();
+            } else if ("POST".equals(method)) {
+                response = netHandle.execute(host + path + querystring, "POST").get();
+            } else if ("PUT".equals(method)) {
+                response = netHandle.execute(host + path + querystring, "PUT").get();
+            } else if ("DELETE".equals(method)) {
+                response = netHandle.execute(host + path + querystring, "DELETE").get();
+            } else {
+                throw new ApiException(500, "unknown method type " + method);
+            }
+        } catch (Exception e) {
+            // There should be a better exception code than 700.
+            throw new ApiException(700, e.getMessage());
+        }
+
+        return response;
+    }
+
 }

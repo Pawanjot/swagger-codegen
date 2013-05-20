@@ -1,0 +1,228 @@
+package {{package}};
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import android.net.http.AndroidHttpClient;
+import android.os.AsyncTask;
+import android.util.Log;
+
+public class NetworkHandler extends AsyncTask<String, Void, String>
+{
+    @SuppressWarnings("unused")
+    final private String TAG = "NETWORKHANDLER";
+
+    private Map<String, String> queryParams = null;
+    private Map<String, String> headerParams = null;
+
+    private Object body = null;
+
+    public NetworkHandler()
+    {
+    }
+
+    private HttpRequest setHeader(HttpRequest request)
+    {
+        for (String key : headerParams.keySet()) {
+            request.setHeader(key, headerParams.get(key));
+        }
+        return request;
+    }
+
+    private String getResponseBody(HttpResponse response) throws Exception
+    {
+        String returned = null;
+
+        if (response != null) {
+            StatusLine statusLine = response.getStatusLine();
+            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                try {
+                    InputStream stream = response.getEntity().getContent();
+                    BufferedInputStream bstream = new BufferedInputStream(stream, 4096);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(bstream));
+                    StringBuffer buffer = new StringBuffer();
+                    String read;
+                    while ((read = br.readLine()) != null) {
+                        buffer.append(read);
+                    }
+                    returned = buffer.toString();
+                } catch (Exception e) {
+                    returned = null;
+                    e.printStackTrace();
+                }
+            }
+        }
+        return returned;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private String doPost(String url)
+    {
+
+        HttpPost request = new HttpPost(url);
+        request = (HttpPost) setHeader(request);
+        request.setHeader("Accept", "application/json");
+        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+        if (body != null) {
+            if (body instanceof Map) {
+                request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+                Map mapBody = (Map) body;
+                for (Object key : mapBody.keySet()) {
+                    nameValuePairs.add(new BasicNameValuePair(key.toString(), mapBody.get(key).toString()));
+                }
+                try {
+                    request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                } catch (UnsupportedEncodingException e1) {
+                    e1.printStackTrace();
+                }
+            } else {
+                try {
+                    request.setHeader("Content-Type", "application/json");
+                    Log.i(TAG, ApiInvoker.serialize(body));
+                    StringEntity requestEntity = new StringEntity(ApiInvoker.serialize(body), "UTF-8");
+                    request.setEntity(requestEntity);
+                } catch (UnsupportedEncodingException e1) {
+                    e1.printStackTrace();
+                } catch (ApiException e2) {
+                    e2.printStackTrace();
+                }
+            }
+        }
+        HttpClient client = new DefaultHttpClient();
+        // client = AndroidHttpClient.newInstance("Android");
+        try {
+
+            return getResponseBody(client.execute(request));
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (client instanceof AndroidHttpClient)
+                ((AndroidHttpClient) client).close();
+            else
+                client.getConnectionManager().shutdown();
+        }
+    }
+
+    private String doGet(String url)
+    {
+        HttpGet request = new HttpGet(url);
+        request = (HttpGet) setHeader(request);
+        request.setHeader("Content-Type", "application/json");
+        request.setHeader("Accept", "application/json");
+        HttpClient client = new DefaultHttpClient();
+        // client = AndroidHttpClient.newInstance("Android");
+        try {
+            return getResponseBody(client.execute(request));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (client instanceof AndroidHttpClient)
+                ((AndroidHttpClient) client).close();
+            else
+                client.getConnectionManager().shutdown();
+        }
+    }
+
+    private String doPut(String url)
+    {
+        return null;
+    }
+
+    private String doDelete(String url)
+    {
+        return null;
+    }
+
+    @Override
+    protected String doInBackground(String... params)
+    {
+        String url = params[0];
+        String method = params[1];
+        String response = null;
+        try {
+            if ("GET".equals(method)) {
+                response = doGet(url);
+            } else if ("POST".equals(method)) {
+                response = doPost(url);
+            } else if ("PUT".equals(method)) {
+                response = doPut(url);
+            } else if ("DELETE".equals(method)) {
+                response = doDelete(url);
+            }
+        } catch (Exception e) {
+            // DO nothing
+            return null;
+        }
+        return response;
+    }
+
+    /**
+     * @return the queryParams
+     */
+    public Map<String, String> getQueryParams()
+    {
+        return queryParams;
+    }
+
+    /**
+     * @param queryParams the queryParams to set
+     */
+    public void setQueryParams(Map<String, String> queryParams)
+    {
+        this.queryParams = queryParams;
+    }
+
+    /**
+     * @return the headerParams
+     */
+    public Map<String, String> getHeaderParams()
+    {
+        return headerParams;
+    }
+
+    /**
+     * @param headerParams the headerParams to set
+     */
+    public void setHeaderParams(Map<String, String> headerParams)
+    {
+        this.headerParams = headerParams;
+    }
+
+    /**
+     * @return the body
+     */
+    public Object getBody()
+    {
+        return body;
+    }
+
+    /**
+     * @param body the body to set
+     */
+    public void setBody(Object body)
+    {
+        this.body = body;
+    }
+}

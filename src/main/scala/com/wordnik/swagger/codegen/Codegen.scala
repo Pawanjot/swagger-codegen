@@ -207,8 +207,10 @@ class Codegen(config: CodegenConfig) {
     val pathParams = new ListBuffer[AnyRef]
     val headerParams = new ListBuffer[AnyRef]
     val bodyParams = new ListBuffer[AnyRef]
+    val formParams = new ListBuffer[AnyRef]
     var paramList = new ListBuffer[HashMap[String, AnyRef]]
     var errorList = new ListBuffer[HashMap[String, AnyRef]]
+
     
     if (operation.errorResponses != null) {
 		operation.errorResponses.foreach(param => { 
@@ -242,6 +244,12 @@ class Codegen(config: CodegenConfig) {
           params += "optional" -> "true"
         }
         param.paramType match {
+          case "form" => {
+            params += "paramName" -> config.toVarName(param.name)
+            params += "baseName" -> param.name
+            params += "required" -> param.required.toString
+            formParams += params.clone
+          }
           case "body" => {
             params += "paramName" -> "body"
             params += "baseName" -> "body"
@@ -343,6 +351,7 @@ class Codegen(config: CodegenConfig) {
         "bodyParams" -> bodyParams.toList,
         "pathParams" -> pathParams.toList,
         "queryParams" -> queryParams.toList,
+        "formParams" -> formParams.toList,
         "headerParams" -> headerParams.toList,
         "requiredParams" -> requiredParams.toList,
         "errorList" -> errorList,

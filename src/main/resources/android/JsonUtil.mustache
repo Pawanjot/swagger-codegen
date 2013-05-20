@@ -9,9 +9,12 @@ public class JsonUtil {
   public static ObjectMapper mapper;
 
   static {
-  	mapper = new ObjectMapper();
+  	  mapper = new ObjectMapper();
+  	  mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
 	  mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	  mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+	  mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 	}
 
 	public static ObjectMapper getJsonMapper() {
