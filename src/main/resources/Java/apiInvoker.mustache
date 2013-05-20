@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 public class ApiInvoker {
   private static ApiInvoker INSTANCE = new ApiInvoker();
@@ -33,7 +34,9 @@ public class ApiInvoker {
   }
 
   public String escapeString(String str) {
-    return str;
+     if(str != null)
+    		return URLEncoder.encode(str);
+     return str;
   }
 
   public static Object deserialize(String json, String containerType, Class cls) throws ApiException {
