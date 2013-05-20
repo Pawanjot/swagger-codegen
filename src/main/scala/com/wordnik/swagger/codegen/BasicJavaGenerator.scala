@@ -77,7 +77,10 @@ class BasicJavaGenerator extends BasicGenerator {
     "Date" -> "java.util.Date",
     "Array" -> "java.util.*",
     "ArrayList" -> "java.util.*",
-    "List" -> "java.util.*")
+    "List" -> "java.util.*",
+    "Map" -> "java.util.*",
+    "HashMap" -> "java.util.*"
+    )
 
   // package for models
   override def modelPackage = Some("com.wordnik.client.model")
@@ -129,7 +132,7 @@ class BasicJavaGenerator extends BasicGenerator {
         val inner = {
           obj.items match {
             case Some(items) => items.ref.getOrElse(items.`type`)
-            case _ => throw new Exception("no inner type defined")
+            case _ => "Object"
           }
         }
         declaredType += "<" + toDeclaredType(inner) + ">"
@@ -154,7 +157,7 @@ class BasicJavaGenerator extends BasicGenerator {
         val inner = {
           obj.items match {
             case Some(items) => items.ref.getOrElse(items.`type`)
-            case _ => throw new Exception("no inner type defined")
+            case _ =>"Object"
           }
         }
         "new ArrayList<" + toDeclaredType(inner) + ">" + "()"

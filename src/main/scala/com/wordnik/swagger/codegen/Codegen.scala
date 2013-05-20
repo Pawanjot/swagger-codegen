@@ -210,6 +210,7 @@ class Codegen(config: CodegenConfig) {
     val formParams = new ListBuffer[AnyRef]
     var paramList = new ListBuffer[HashMap[String, AnyRef]]
     var errorList = new ListBuffer[HashMap[String, AnyRef]]
+    var bodyParamNumber = 0;
 
     
     if (operation.errorResponses != null) {
@@ -251,13 +252,16 @@ class Codegen(config: CodegenConfig) {
             formParams += params.clone
           }
           case "body" => {
-            params += "paramName" -> "body"
-            params += "baseName" -> "body"
+            var bodyParamName = "body"+bodyParamNumber
+            bodyParamNumber += 1
+            params += "paramName" -> bodyParamName
+            params += "baseName" -> param.name
+            params += "required" -> param.required.toString
             param.required match {
               case true => params += "required" -> "true"
               case _ =>
             }
-            bodyParam = Some("body")
+            bodyParam = Some(bodyParamName)
             bodyParams += params.clone
           }
           case "path" => {
