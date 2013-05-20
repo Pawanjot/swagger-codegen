@@ -67,7 +67,7 @@
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
-          <execution>
+          <!--  execution>
             <phase>package</phase>
             <goals>
               <goal>copy-dependencies</goal>
@@ -75,7 +75,7 @@
             <configuration>
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
             </configuration>
-          </execution>
+          </execution -->
         </executions>
       </plugin>
       <plugin>
@@ -97,7 +97,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
-          <execution>
+          <!-- execution>
             <id>add_sources</id>
             <phase>generate-sources</phase>
             <goals>
@@ -120,7 +120,7 @@
                 <source>src/test/java</source>
               </sources>
             </configuration>
-          </execution>
+          </execution -->
         </executions>
       </plugin>
       <plugin>
@@ -260,6 +260,12 @@
       <version>${json4s-version}</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.rogach</groupId>
+      <artifactId>scallop_2.9.1</artifactId>
+      <version>${scallop-version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
   <properties>
     <swagger-core-version>1.1.1-SNAPSHOT</swagger-core-version>
@@ -268,5 +274,6 @@
     <maven-plugin.version>1.0.0</maven-plugin.version>
     <scala-test-version>1.6.1</scala-test-version>
     <json4s-version>3.0.0</json4s-version>
+    <scallop-version>0.9.1</scallop-version>
   </properties>
 </project>

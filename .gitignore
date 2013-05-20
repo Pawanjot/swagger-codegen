@@ -27,3 +27,5 @@ target
 .idea
 .lib
 atlassian-ide-plugin.xml
+.cache
+.settings
