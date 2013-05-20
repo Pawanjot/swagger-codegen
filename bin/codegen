@@ -41,7 +41,7 @@ which java 2>&1 >/dev/null || { echo "Unable to find Java. Please Install or Add
 which jps 2>&1 >/dev/null || { echo "Unable to find Java PS. Please Install or Add to your PATH."; exit -1; }
 
 URL=$1
-[ -z $URL ] && URL=http://localhost:8000/api/resources
+[ -z $URL ] && URL=http://dev-web-001.mbiux.com/api/resources
 
 echo "Processing URL: "$URL
 

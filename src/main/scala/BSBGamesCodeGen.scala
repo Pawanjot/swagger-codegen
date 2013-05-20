@@ -9,7 +9,7 @@ object BSBGamesCodeGen extends BasicAndroidGenerator {
     try {
 
       if (args.length == 0) {
-        val cargs = Array[String]("http://localhost:8000/api/resources");
+        val cargs = Array[String]("http://dev-web-001.mbiux.com/api/resources");
         generateClient(cargs)
       } else {
         generateClient(args)
