@@ -30,3 +30,4 @@ atlassian-ide-plugin.xml
 .cache
 .settings
 client/
+.DS_Store
