@@ -45,7 +45,7 @@ URL=$1
 
 echo "Processing URL: "$URL
 
-export CLASSPATH=`ls $SWAGGER_DIR/lib/ 2>/dev/null | grep .jar | tr "\t\n\r " ::::`:`ls $SWAGGER_DIR 2>/dev/null | grep .jar | tr "\t\n\r " ::::`:$SWAGGER_DIR/lib/*:$SWAGGER_DIR/*
+export CLASSPATH=`find $SWAGGER_DIR/ -iname \*.jar 2>/dev/null | tr "\t\n\r " ::::`:`find $SWAGGER_DIR -type d 2>/dev/null | tr "\t\n\r " ::::`:$SWAGGER_DIR/lib/*:$SWAGGER_DIR/*
 export JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M"
 CLASS=`find $TOOLS_DIR -iname BSBGamesCodeGen.scala`
 [ -z $CLASS ] && CLASS='BSBGamesCodeGen'
