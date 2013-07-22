@@ -60,7 +60,13 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
       }
     }
 
-    implicit val basePath = getBasePath(doc.basePath)
+    implicit val basePath = getBasePath(doc.basePath) match {
+      case "" => {
+        // use host
+        host
+      }
+      case e: String => e
+    }
 
     val apiReferences = doc.apis
     if (apiReferences == null)
@@ -117,6 +123,7 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
     })
 
     codegen.writeSupportingClasses(operationMap, allModels.toMap)
+    System.exit(1)
   }
 
   def extractApiOperations(apiListings: List[ApiListing], allModels: HashMap[String, Model] )(implicit basePath:String) = {
