@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package swaggerSpec1_2
 
 import com.wordnik.swagger.model._
 import com.wordnik.swagger.codegen.util.{ResourceExtractor, ApiExtractor, CoreUtils}
@@ -29,7 +30,7 @@ import scala.reflect.BeanProperty
 class ResourceExtractorTest extends FlatSpec with ShouldMatchers {
   behavior of "ResourceExtractor"
   it should "get 3 apis from a resource listing" in {
-    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore/resources.json")
+    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore-1.2/api-docs")
     resourceListing should not be(null)
     resourceListing.apis.size should be (3)
   }
@@ -39,8 +40,8 @@ class ResourceExtractorTest extends FlatSpec with ShouldMatchers {
 class ApiExtractorTest extends FlatSpec with ShouldMatchers {
   behavior of "ApiExtractor"
   it should "verify the deserialization of the store api" in {
-    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore/resources.json")
-    val docs = ApiExtractor.extractApiOperations("src/test/resources/petstore", resourceListing.apis)
+    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore-1.2/api-docs")
+    val docs = ApiExtractor.extractApiOperations(resourceListing.swaggerVersion, "src/test/resources/petstore-1.2", resourceListing.apis)
 
     val m = docs.map(t => (t.resourcePath, t)).toMap
     val storeApi = m("/store")
@@ -49,16 +50,16 @@ class ApiExtractorTest extends FlatSpec with ShouldMatchers {
     storeApi.apis.size should be (2)
 
     val f = storeApi.apis.map(m => (m.path, m)).toMap
-    (f.keys.toSet & Set("/store.{format}/order/{orderId}","/store.{format}/order")).size should be (2)
+    (f.keys.toSet & Set("/store/order/{orderId}","/store/order")).size should be (2)
 
-    val storeOps = f("/store.{format}/order/{orderId}")
+    val storeOps = f("/store/order/{orderId}")
     val ops = storeOps.operations.map(o => (o.nickname, o)).toMap
     val getOrderById = ops("getOrderById")
 
     getOrderById should not be null
 
-    getOrderById.httpMethod should be ("GET")
+    getOrderById.method should be ("GET")
     getOrderById.parameters.size should be (1)
-    getOrderById.errorResponses.size should be (2)
+    getOrderById.responseMessages.size should be (2)
   }
 }

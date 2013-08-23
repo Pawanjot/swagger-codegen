@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import scala.collection.JavaConversions._
 object Validator extends PathUtil {
   def main(args: Array[String]) {
     if(args.length == 0) {
-      throw new RuntimeException("Need url to resources.json as argument. You can also specify VM Argument -DfileMap=/path/to/folder/containing.resources.json/")
+      throw new RuntimeException("Need url to Resource Listing as argument. You can also specify VM Argument -DfileMap=/path/to/resourceListing")
     }
     val host = args(0)
     val apiKey = {
@@ -44,14 +44,12 @@ object Validator extends PathUtil {
       }
     }
 
-    val basePath = getBasePath(doc.basePath)
-    val apis = ApiExtractor.fetchApiListings(basePath, doc.apis, apiKey)
-
+    val basePath = getBasePath(host, doc.basePath)
+    val apis = ApiExtractor.fetchApiListings(doc.swaggerVersion, basePath, doc.apis, apiKey)
     val swaggerSpecValidator = new SwaggerSpecValidator(doc, apis, false)
     swaggerSpecValidator.validate()
     swaggerSpecValidator.generateReport(host, outputFilename)
 
     System.exit(0)
-
   }
 }

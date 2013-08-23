@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -54,29 +54,33 @@ class BasicObjcGenerator extends BasicGenerator {
     "long" -> "NSNumber",
     "double" -> "NSNumber",
     "Array" -> "NSArray",
+    "array" -> "NSArray",
     "List" -> "NSArray",
     "object" -> "NSObject")
 
   override def importMapping = Map(
+    "RVBDate" -> "NIKDate",
     "Date" -> "NIKDate")
 
-  override def toModelFilename(name: String) = "NIK" + name
+  override def toModelFilename(name: String) = "RVB" + name
 
   // naming for the models
   override def toModelName(name: String) = {
-    (typeMapping.values ++ 
+    (typeMapping.keys ++ 
       foundationClasses ++ 
       importMapping.values ++ 
       defaultIncludes ++ 
       languageSpecificPrimitives
     ).toSet.contains(name) match {
       case true => name(0).toUpper + name.substring(1)
-      case _ => "NIK" + name(0).toUpper + name.substring(1)
+      case _ => {
+        "RVB" + name(0).toUpper + name.substring(1)
+      }
     }
   }
 
   // naming for the apis
-  override def toApiName(name: String) = "NIK" + name(0).toUpper + name.substring(1) + "Api"
+  override def toApiName(name: String) = "RVB" + name(0).toUpper + name.substring(1) + "Api"
 
   // location of templates
   override def templateDir = "src/main/resources/objc"
@@ -106,10 +110,10 @@ class BasicObjcGenerator extends BasicGenerator {
         responseClass match {
           case "void" => None
           case e: String => {
-            responseClass.startsWith("List") match {
-              case true => Some("NSArray")
-              case false => Some(toModelName(responseClass))
-            }
+            if(responseClass.toLowerCase.startsWith("array") || responseClass.toLowerCase.startsWith("list"))
+              Some("NSArray")
+            else
+              Some(toModelName(responseClass))
           }
         }
       }
@@ -158,16 +162,16 @@ class BasicObjcGenerator extends BasicGenerator {
 
   override def toDeclaration(obj: ModelProperty) = {
     var declaredType = toDeclaredType(obj.`type`)
-    declaredType match {
-      case "Array" => {
-        declaredType = "List"
+    declaredType.toLowerCase match {
+      case "List" => {
+        declaredType = "array"
       }
       case e: String => e
     }
 
     val defaultValue = toDefaultValue(declaredType, obj)
     declaredType match {
-      case "List" => {
+      case "array" => {
         val inner = {
           obj.items match {
             case Some(items) => {

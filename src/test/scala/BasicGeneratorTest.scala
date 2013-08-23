@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -41,9 +41,9 @@ class BasicGeneratorTest extends FlatSpec with ShouldMatchers {
   behavior of "BasicGenerator"
 
   it should "get operations" in {
-    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore/resources.json")
+    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore-1.1/resources.json")
 
-    val subDocs = ApiExtractor.fetchApiListings("src/test/resources/petstore", resourceListing.apis)
+    val subDocs = ApiExtractor.fetchApiListings(resourceListing.swaggerVersion, "src/test/resources/petstore-1.1", resourceListing.apis)
     val allModels = new HashMap[String, Model]
 
     implicit val basePath = "http://localhost:8080/api"
@@ -64,17 +64,17 @@ class BasicGeneratorTest extends FlatSpec with ShouldMatchers {
     // pick apart the /store/order api
     val orderApi = operations("/store.{format}/order")
 
-    orderApi.httpMethod should be ("POST")
+    orderApi.method should be ("POST")
     orderApi.summary should be ("Place an order for a pet")
     orderApi.responseClass should be ("void")
     orderApi.nickname should be ("placeOrder")
     orderApi.parameters.size should be (1)
-    orderApi.errorResponses.size should be (1)
+    orderApi.responseMessages.size should be (1)
   }
 
   it should "verify ops are grouped by path correctly" in {
-    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore/resources.json")
-    val subDocs = ApiExtractor.fetchApiListings("src/test/resources/petstore", resourceListing.apis)
+    val resourceListing = ResourceExtractor.fetchListing("src/test/resources/petstore-1.1/resources.json")
+    val subDocs = ApiExtractor.fetchApiListings(resourceListing.swaggerVersion, "src/test/resources/petstore-1.1", resourceListing.apis)
     val allModels = new HashMap[String, Model]()
 
     implicit val basePath = "http://localhost:8080/api"
@@ -91,7 +91,7 @@ class BasicGeneratorTest extends FlatSpec with ShouldMatchers {
 
     // 2 operations
     orderOperations.size should be (2)
-    (orderOperations.map(m => m.httpMethod).toSet & Set("GET", "DELETE")).size should be (2)
+    (orderOperations.map(m => m.method).toSet & Set("GET", "DELETE")).size should be (2)
     (orderOperations.map(m => m.nickname).toSet & Set("getOrderById", "deleteOrder")).size should be (2)
   }
 
@@ -136,12 +136,13 @@ class BasicGeneratorTest extends FlatSpec with ShouldMatchers {
     Model(
       "SampleObject",
       "SampleObject",
+      "SampleObject",
       LinkedHashMap(
-        "stringValue" -> ModelProperty("string"),
-        "intValue" -> ModelProperty("int"),
-        "longValue" -> ModelProperty("long"),
-        "floatValue" -> ModelProperty("float"),
-        "doubleValue" -> ModelProperty("double")),
+        "stringValue" -> ModelProperty("string", "java.lang.String"),
+        "intValue" -> ModelProperty("int", "int"),
+        "longValue" -> ModelProperty("long", "long"),
+        "floatValue" -> ModelProperty("float", "float"),
+        "doubleValue" -> ModelProperty("double", "double")),
       Some("a sample object"))
   }
 }

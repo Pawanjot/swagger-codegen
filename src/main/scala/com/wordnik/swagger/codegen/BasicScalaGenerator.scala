@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ class BasicScalaGenerator extends BasicGenerator {
     "Any")
 
   override def typeMapping = Map(
+    "array" -> "List",
     "boolean" -> "Boolean",
     "string" -> "String",
     "int" -> "Int",
@@ -77,9 +78,47 @@ class BasicScalaGenerator extends BasicGenerator {
     }
   }
 
+  override def processResponseDeclaration(responseClass: String): Option[String] = {
+    responseClass match {
+      case "void" => None
+      case e: String => {
+        val ComplexTypeMatcher = "(.*)\\[(.*)\\].*".r
+        val t = e match {
+          case ComplexTypeMatcher(container, inner) => {
+            e.replaceAll(container, typeMapping.getOrElse(container, container))
+          }
+          case _ => e
+        }
+        Some(typeMapping.getOrElse(t, t))
+      }
+    }
+  }
+
+  override def toDeclaredType(dt: String): String = {
+    val declaredType = dt.indexOf("[") match {
+      case -1 => dt
+      case n: Int => {
+        if (dt.substring(0, n).toLowerCase == "array")
+          "List" + dt.substring(n)
+        else dt
+      }
+    }
+    typeMapping.getOrElse(declaredType, declaredType)
+  }
+
   override def toDeclaration(obj: ModelProperty): (String, String) = {
     obj.`type` match {
       case "Array" => {
+        val inner = {
+          obj.items match {
+            case Some(items) => items.ref.getOrElse(items.`type`)
+            case _ => throw new Exception("no inner type defined")
+          }
+        }
+        val e = "List[%s]" format toDeclaredType(inner)
+        (e, toDefaultValue(inner, obj))
+      }
+      case "List" => {
         val inner = {
           obj.items match {
             case Some(items) => items.ref.getOrElse(items.`type`)

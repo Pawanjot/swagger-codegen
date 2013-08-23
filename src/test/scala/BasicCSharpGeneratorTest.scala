@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,5 +37,12 @@ class BasicCSharpGeneratorTest extends FlatSpec with ShouldMatchers {
    */
   it should "perserve the name date" in {
     config.toVarName("date") should be ("date")
+  }
+
+ /*
+   * arrays look nice
+   */
+  it should "process a string array" in {
+    config.processResponseDeclaration("array[string]") should be (Some("List<string>"))
   }
 }

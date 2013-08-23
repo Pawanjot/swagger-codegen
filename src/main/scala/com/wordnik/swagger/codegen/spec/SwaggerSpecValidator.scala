@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -441,4 +441,6 @@ object ValidationMessage {
   val OPERATION_PARAM = "Operation Parameter"
   val MODEL = "Model"
   val MODEL_PROPERTY = "Model Property"
+
+  val validationMessages = ListBuffer.empty[ValidationMessage]
 }

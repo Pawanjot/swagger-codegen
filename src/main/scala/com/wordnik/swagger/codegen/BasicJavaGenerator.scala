@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,13 +44,17 @@ class BasicJavaGenerator extends BasicGenerator {
    * variable declarations.
    */
   override def typeMapping = Map(
+    "Array" -> "List",
+    "array" -> "List",
+    "List" -> "List",
     "boolean" -> "Boolean",
     "string" -> "String",
     "int" -> "Integer",
     "float" -> "Float",
     "long" -> "Long",
     "double" -> "Double",
-    "object" -> "Object")
+    "object" -> "Object",
+    "integer" -> "Integer")
 
   // location of templates
   override def templateDir = "Java"
@@ -102,7 +106,16 @@ class BasicJavaGenerator extends BasicGenerator {
   override def processResponseDeclaration(responseClass: String): Option[String] = {
     responseClass match {
       case "void" => None
-      case e: String => Some(typeMapping.getOrElse(e, e.replaceAll("\\[", "<").replaceAll("\\]", ">")))
+      case e: String => {
+        val ComplexTypeMatcher = "(.*)\\[(.*)\\].*".r
+        val t = e match {
+          case ComplexTypeMatcher(container, inner) => {
+            e.replaceAll(container, typeMapping.getOrElse(container, container))
+          }
+          case _ => e
+        }
+        Some(typeMapping.getOrElse(t, t.replaceAll("\\[", "<").replaceAll("\\]", ">")))
+      }
     }
   }
 
@@ -110,7 +123,7 @@ class BasicJavaGenerator extends BasicGenerator {
     val declaredType = dt.indexOf("[") match {
       case -1 => dt
       case n: Int => {
-        if (dt.substring(0, n) == "Array")
+        if (dt.substring(0, n).toLowerCase == "array")
           "List" + dt.substring(n).replaceAll("\\[", "<").replaceAll("\\]", ">")
         else dt.replaceAll("\\[", "<").replaceAll("\\]", ">")
       }
@@ -120,7 +133,6 @@ class BasicJavaGenerator extends BasicGenerator {
 
   override def toDeclaration(obj: ModelProperty) = {
     var declaredType = toDeclaredType(obj.`type`)
-
     declaredType match {
       case "Array" => declaredType = "List"
       case e: String => e

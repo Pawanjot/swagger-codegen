@@ -1,5 +1,5 @@
 /**
- *  Copyright 2012 Wordnik, Inc.
+ *  Copyright 2013 Wordnik, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -60,18 +60,13 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
       }
     }
 
-    implicit val basePath = getBasePath(doc.basePath) match {
-      case "" => {
-        // use host
-        host
-      }
-      case e: String => e
-    }
+    implicit val basePath = getBasePath(host, doc.basePath)
+    println("base path is " + basePath)
 
     val apiReferences = doc.apis
     if (apiReferences == null)
       throw new Exception("No APIs specified by resource")
-    val apis = ApiExtractor.fetchApiListings(basePath, apiReferences, apiKey)
+    val apis = ApiExtractor.fetchApiListings(doc.swaggerVersion, basePath, apiReferences, apiKey)
 
     SwaggerSerializers.validationMessages.filter(_.level == ValidationMessage.ERROR).size match {
       case i: Int if i > 0 => {
@@ -123,7 +118,7 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
     })
 
     codegen.writeSupportingClasses(operationMap, allModels.toMap)
-    System.exit(1)
+    System.exit(0)
   }
 
   def extractApiOperations(apiListings: List[ApiListing], allModels: HashMap[String, Model] )(implicit basePath:String) = {

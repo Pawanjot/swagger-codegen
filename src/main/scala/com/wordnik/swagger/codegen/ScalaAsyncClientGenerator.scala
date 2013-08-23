@@ -95,10 +95,7 @@ object ScalaAsyncClientGenerator extends App {
     if (!r.startsWith("http") && !r.startsWith("file")) sys.props("fileMap") = r
     r
   }
-  val baseUrl = {
-    val r = opts.baseUrl()
-    if (r == null || r.trim.isEmpty) None else Some(r)
-  }
+  val baseUrl = opts.baseUrl.get
   val cfg = SwaggerGenConfig(
     api = SwaggerApi(opts.name(), resUrl, opts.`package`(), apiKey = opts.apiKey.get, baseUrl = baseUrl),
     templateDir = new File(opts.templateDir()),
@@ -301,8 +298,8 @@ class ScalaAsyncClientGenerator(cfg: SwaggerGenConfig) extends BasicGenerator {
   codegen = new AsyncClientCodegen(cfg.api.clientName, this, Some(cfg.projectRoot))
 
 
-  override def getBasePath(basePath: String): String =
-    cfg.api.baseUrl.getOrElse(super.getBasePath(basePath))
+  override def getBasePath(host: String, basePath: String): String =
+    cfg.api.baseUrl.getOrElse(super.getBasePath(host, basePath))
 
   override def generateClient(args: Array[String]) = {
 
@@ -316,12 +313,12 @@ class ScalaAsyncClientGenerator(cfg: SwaggerGenConfig) extends BasicGenerator {
       }
     }
 
-    implicit val basePath = getBasePath(doc.basePath)
+    implicit val basePath = getBasePath(host, doc.basePath)
 
     val apiReferences = doc.apis
     if (apiReferences == null)
       throw new Exception("No APIs specified by resource")
-    val apis = ApiExtractor.fetchApiListings(basePath, apiReferences, apiKey)
+    val apis = ApiExtractor.fetchApiListings(doc.swaggerVersion, basePath, apiReferences, apiKey)
 
     new SwaggerSpecValidator(doc, apis).validate()
 
