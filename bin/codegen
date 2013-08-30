@@ -40,15 +40,18 @@ fi
 which java 2>&1 >/dev/null || { echo "Unable to find Java. Please Install or Add to your PATH."; exit -1; }
 which jps 2>&1 >/dev/null || { echo "Unable to find Java PS. Please Install or Add to your PATH."; exit -1; }
 
-URL=$1
+[ -z $URL ] && URL=$1
 [ -z $URL ] && URL=http://dev-web-001.mbiux.com/api/resources
+[ -z $PLATFORM ] && PLATFORM=$2
+[ -z $PLATFORM ] && PLATFORM=Android
 
 echo "Processing URL: "$URL
 
 export CLASSPATH=`find $SWAGGER_DIR/ -iname \*.jar 2>/dev/null | tr "\t\n\r " ::::`:`find $SWAGGER_DIR -type d 2>/dev/null | tr "\t\n\r " ::::`:$SWAGGER_DIR/lib/*:$SWAGGER_DIR/*
-export JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M"
-CLASS=`find $TOOLS_DIR -iname BSBGamesCodeGen.scala`
-[ -z $CLASS ] && CLASS='BSBGamesCodeGen'
+export JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=1024M -Xmx2048M"
+CLASS=BSB${PLATFORM}GamesCodeGen
+E_CLASS=`find $TOOLS_DIR -iname $CLASS`
+[ -z $E_CLASS ] || CLASS="$E_CLASS"
 
 [ -z $CLASS ] && { echo "Unable to Locate Class." ; exit -1; }
 #JAVA_OPTS=$JAVA_OPTS $SCALA -cp $CLASSPATH $CLASS $URL special-key

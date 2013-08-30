@@ -4,7 +4,7 @@
 
 import com.wordnik.swagger.codegen.BasicAndroidGenerator
 
-object BSBGamesCodeGen extends BasicAndroidGenerator {
+object BSBAndroidGamesCodeGen extends BasicAndroidGenerator {
   def main(args: Array[String]) = {
     try {
 
