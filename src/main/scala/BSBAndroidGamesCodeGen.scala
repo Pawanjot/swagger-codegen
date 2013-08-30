@@ -15,7 +15,11 @@ object BSBAndroidGamesCodeGen extends BasicAndroidGenerator {
         generateClient(args)
       }
     } catch {
-      case e: Exception => println("Error Occured in Generation: " + e.getMessage())
+      case e: Exception => {
+        println("Error Occured in Generation: " + e.getMessage())
+        println("Details are as follows: ")
+        e.printStackTrace()
+      }
     }
   }
 

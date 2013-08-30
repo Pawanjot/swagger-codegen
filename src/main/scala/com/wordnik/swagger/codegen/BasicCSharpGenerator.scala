@@ -137,7 +137,10 @@ class BasicCSharpGenerator extends BasicGenerator {
         val inner = {
           obj.items match {
             case Some(items) => items.ref.getOrElse(items.`type`)
-            case _ => throw new Exception("no inner type defined")
+            case _ => {
+              //throw new Exception("no inner type defined")
+              "object"
+            }
           }
         }
         declaredType += "<" + toDeclaredType(inner) + ">"
@@ -162,7 +165,10 @@ class BasicCSharpGenerator extends BasicGenerator {
         val inner = {
           obj.items match {
             case Some(items) => items.ref.getOrElse(items.`type`)
-            case _ => throw new Exception("no inner type defined")
+            case _ => {
+              //throw new Exception("no inner type defined")
+              "object"
+            } 
           }
         }
         "new ArrayList<" + toDeclaredType(inner) + ">" + "()"
