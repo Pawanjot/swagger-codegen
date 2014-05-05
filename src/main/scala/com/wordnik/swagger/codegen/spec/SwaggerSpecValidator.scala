@@ -363,8 +363,13 @@ class SwaggerSpecValidator(private val doc: ResourceListing,
   private def getUpdatedType(validModelNames: Set[String], name: String): Option[String] = {
     if(name == null) return None
 
+    /* uma: Fixed for allowing model classes which start with lower case letters */
+    val upperName = name(0).toUpper + name.substring(1)
+
     if (validModelNames.contains(name)) {
       Some(name)
+    } else if (validModelNames.contains(upperName)) {
+      Some(upperName)
     } else if (name.indexOf("[") > 0) {
       // it's a complex value
       val ComplexTypeMatcher = ".*\\[(.*)\\].*".r
